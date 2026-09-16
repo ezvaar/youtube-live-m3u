@@ -60,6 +60,32 @@ def generate_playlist():
     with open("youtube-live.m3u", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
         f.write(f"# Updated: {now}\n")
+        f.write("# Auto-generated with yt-ydl_opts = {
+    "format": "best[protocol^=m3u8]/best",
+    "skip_download": True,
+    "quiet": True,
+    "no_warnings": True,
+    "ignoreerrors": True,
+}
+
+def get_best_m3u8(info):
+    if not info:
+        return None
+    formats = info.get("formats") or []
+    hls = [f for f in formats if f.get("protocol") in ("m3u8", "m3u8_native") and f.get("url")]
+    if hls:
+        hls.sort(key=lambda x: x.get("height") or 0, reverse=True)
+        return hls[0]["url"]
+    return info.get("url")
+
+def generate_playlist():
+    print("Generating YouTube Live playlist...")
+    valid = 0
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    with open("youtube-live.m3u", "w", encoding="utf-8") as f:
+        f.write("#EXTM3U\n")
+        f.write(f"# Updated: {now}\n")
         f.write("# Auto-generated with yt-dlp – links expire after a few hours\n\n")
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
